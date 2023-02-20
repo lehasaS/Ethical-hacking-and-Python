@@ -1,11 +1,11 @@
 import scapy.all as scapy
 import requests
-import optparse
+import argparse
 
 def get_ip_range():
-    parser = optparse.OptionParser()
-    parser.add_option("-t", "--target", dest="target", help="Enter the target IP address or IP address range")
-    (values, arguments) = parser.parse_args()
+    parser = argparse.ArgumentParser(prog='network_scanner.py', description="Scans for devices connected in the network")
+    parser.add_argument("-t", "--target", dest="target", help="Enter the target IP address or IP address range", type=str)
+    values = parser.parse_args()
 
     if not values.target:
         parser.error("[-] Please specify the target IP address or IP address range, use --help for more information")
@@ -14,7 +14,7 @@ def get_ip_range():
 
 def get_clients(ip_address):
     request_ip = scapy.ARP(pdst=ip_address)
-    broadcast_mac = scapy.Ether(dst="ff:ff:ff:ff:ff:ff", )
+    broadcast_mac = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
     arp_request_packet = broadcast_mac/request_ip
     print(arp_request_packet.show())
     answered_list = scapy.srp(arp_request_packet, timeout=20, verbose=False)[0]
