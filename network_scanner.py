@@ -1,10 +1,14 @@
+import warnings
+from cryptography.utils import CryptographyDeprecationWarning
+warnings.filterwarnings("ignore", category=CryptographyDeprecationWarning)
 import scapy.all as scapy
-import optparse
+import requests
+import argparse
 
 def get_ip_range():
-    parser = optparse.OptionParser()
-    parser.add_option("-t", "--target", dest="target", help="Enter the target IP address or IP address range")
-    (values, arguments) = parser.parse_args()
+    parser = argparse.ArgumentParser(prog='network_scanner.py', description="Scans for devices connected in the network")
+    parser.add_argument("-t", "--target", dest="target", help="Enter the target IP address or IP address range", type=str)
+    values = parser.parse_args()
 
     if not values.target:
         parser.error("[-] Please specify the target IP address or IP address range, use --help for more information")
@@ -16,7 +20,7 @@ def get_clients(ip_address):
     broadcast_mac = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
     arp_request_packet = broadcast_mac/request_ip
     print(arp_request_packet.show())
-    answered_list = scapy.srp(arp_request_packet, timeout=1, verbose=False)[0]
+    answered_list = scapy.srp(arp_request_packet, timeout=20, verbose=False)[0]
 
     clients_list=[]
     for client in answered_list:
@@ -25,11 +29,18 @@ def get_clients(ip_address):
 
     return clients_list
 
+def get_vendor(mac):
+    try:
+        return requests.get('http://api.macvendors.com/' + mac).text
+    except:
+        return Exception("Vendor Not Found")
+
 def print_clients(clients_list):
-    print("IP\t\t\tMAC Address\n-------------------------------------")
+    print("IP\t\t\tMAC Address\t\t\tVendor\n-------------------------------------")
 
     for client in clients_list:
-        print(client["ip"]+"\t\t"+client["mac"])
+        vendor = get_vendor(client["mac"])
+        print(client["ip"]+"\t\t"+client["mac"]+"\t\t"+vendor)
 
 def main():
     ip_address = get_ip_range()
