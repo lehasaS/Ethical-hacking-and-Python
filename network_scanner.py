@@ -1,4 +1,5 @@
 import scapy.all as scapy
+import requests
 import optparse
 
 def get_ip_range():
@@ -13,10 +14,10 @@ def get_ip_range():
 
 def get_clients(ip_address):
     request_ip = scapy.ARP(pdst=ip_address)
-    broadcast_mac = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
+    broadcast_mac = scapy.Ether(dst="ff:ff:ff:ff:ff:ff", )
     arp_request_packet = broadcast_mac/request_ip
     print(arp_request_packet.show())
-    answered_list = scapy.srp(arp_request_packet, timeout=1, verbose=False)[0]
+    answered_list = scapy.srp(arp_request_packet, timeout=20, verbose=False)[0]
 
     clients_list=[]
     for client in answered_list:
@@ -25,11 +26,18 @@ def get_clients(ip_address):
 
     return clients_list
 
+def get_vendor(mac):
+    try:
+        return requests.get('http://api.macvendors.com/' + mac).text
+    except:
+        return Exception("Vendor Not Found")
+
 def print_clients(clients_list):
-    print("IP\t\t\tMAC Address\n-------------------------------------")
+    print("IP\t\t\tMAC Address\t\t\tVendor\n-------------------------------------")
 
     for client in clients_list:
-        print(client["ip"]+"\t\t"+client["mac"])
+        vendor = get_vendor(client["mac"])
+        print(client["ip"]+"\t\t"+client["mac"]+"\t\t"+vendor)
 
 def main():
     ip_address = get_ip_range()
