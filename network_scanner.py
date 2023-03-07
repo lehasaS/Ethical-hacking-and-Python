@@ -19,7 +19,6 @@ def get_clients(ip_address):
     request_ip = scapy.ARP(pdst=ip_address)
     broadcast_mac = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
     arp_request_packet = broadcast_mac/request_ip
-    print(arp_request_packet.show())
     answered_list = scapy.srp(arp_request_packet, timeout=20, verbose=False)[0]
 
     clients_list=[]
@@ -36,7 +35,7 @@ def get_vendor(mac):
         return Exception("Vendor Not Found")
 
 def print_clients(clients_list):
-    print("IP\t\t\tMAC Address\t\t\tVendor\n-------------------------------------")
+    print("IP\t\t\tMAC Address\t\t\tVendor\n--------------------------------------------------------------------------")
 
     for client in clients_list:
         vendor = get_vendor(client["mac"])
